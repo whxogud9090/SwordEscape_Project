@@ -1,7 +1,10 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Door : MonoBehaviour
 {
+    public string nextSceneName;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
@@ -9,6 +12,7 @@ public class Door : MonoBehaviour
             if (GameManager.instance.currentSword >= GameManager.instance.requiredSword)
             {
                 Debug.Log("Å¬¸®¾î!");
+                SceneManager.LoadScene(nextSceneName);
             }
             else
             {

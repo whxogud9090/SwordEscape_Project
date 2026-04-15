@@ -4,40 +4,54 @@ using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
-    public float moveSpeed = 5f;
+    public float moveSpeed = 7f;
     public float jumpForce = 15f;
 
     private Rigidbody2D rb;
     private bool isGrounded;
-
-    private Vector3 startPosition;
     private bool isInvincible = false;
+
+    float originalSpeed;
+    bool isSpeedUp = false;
+    float moveX;
+
+    Vector3 startPosition;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        startPosition = transform.position;
+        originalSpeed = moveSpeed; // ‚≠ê ÏõêÎûò ÏÜçÎèÑ Ï†ÄÏû•
     }
 
     void Update()
     {
-        Move();
-        Jump();
-    }
+        moveX = Input.GetAxis("Horizontal");
 
-    void Move()
-    {
-        float moveX = Input.GetAxisRaw("Horizontal");
-        rb.linearVelocity = new Vector2(moveX * moveSpeed, rb.linearVelocity.y);
-
-        if (moveX > 0)
+        GetComponent<SpriteRenderer>().flipX = moveX < 0;
+        if (moveX != 0)
         {
-            transform.localScale = new Vector3(-2, 2, 1);
+            GetComponent<SpriteRenderer>().flipX = moveX < 0;
         }
         else if (moveX < 0)
-        {
-            transform.localScale = new Vector3(2, 2, 1);
-        }
+            transform.localScale = new Vector3(-1, 1, 1);
+
+        Jump();
+    }
+    void FixedUpdate()
+    {
+        rb.linearVelocity = new Vector2(moveX * moveSpeed, rb.linearVelocity.y);
+    }
+    void Move()
+    {
+        float moveX = Input.GetAxis("Horizontal");
+
+        Vector2 targetVelocity = new Vector2(moveX * moveSpeed, rb.linearVelocity.y);
+        rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, targetVelocity, 0.2f);
+
+        if (moveX > 0)
+            transform.localScale = new Vector3(1, 1, 1);
+        else if (moveX < 0)
+            transform.localScale = new Vector3(-1, 1, 1);
     }
 
     void Jump()
@@ -48,7 +62,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnCollisionStay2D(Collision2D collision)
+    void OnCollisionStay2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
@@ -56,7 +70,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
+    void OnCollisionExit2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
@@ -64,29 +78,32 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D other)
     {
-        // ∞°Ω√ ¥Í¿∏∏È ¡◊±‚ (π´¿˚ æ∆¥“ ∂ß∏∏)
-        if (other.CompareTag("Spike"))
+        if (other.CompareTag("Sword"))
         {
-            if (!isInvincible)
-            {
-                Die();
-            }
+            Debug.Log("Get Sword!");
+            Destroy(other.gameObject);
+            GameManager.instance.currentSword++;
         }
 
-        // π´¿˚ æ∆¿Ã≈€ ∏‘±‚
+       
+        if (other.CompareTag("Spike") && !isInvincible)
+        {
+            Die();
+        }
+
+        
         if (other.CompareTag("Invincible"))
         {
             Destroy(other.gameObject);
             StartCoroutine(InvincibleTime());
         }
-        if (other.CompareTag("Door"))
+
+        if (other.CompareTag("Speed"))
         {
-            if (GameManager.instance.currentSword >= GameManager.instance.requiredSword)
-            {
-                SceneManager.LoadScene("Stage2");
-            }
+            Destroy(other.gameObject);
+            StartCoroutine(SpeedUp());
         }
     }
 
@@ -100,5 +117,15 @@ public class PlayerController : MonoBehaviour
         isInvincible = true;
         yield return new WaitForSeconds(3f);
         isInvincible = false;
+    }
+    IEnumerator SpeedUp()
+    {
+        isSpeedUp = true;
+        moveSpeed = originalSpeed * 2f; // ÏÜçÎèÑ 2Î∞∞
+
+        yield return new WaitForSeconds(5f); // 5Ï¥à Ïú†ÏßÄ
+
+        moveSpeed = originalSpeed;
+        isSpeedUp = false;
     }
 }

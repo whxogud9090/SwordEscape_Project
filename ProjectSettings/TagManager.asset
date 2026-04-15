@@ -9,6 +9,9 @@ TagManager:
   - Invincible
   - door
   - Door
+  - Enemy
+  - Sword
+  - Speed
   layers:
   - Default
   - TransparentFX
