@@ -12,11 +12,12 @@ TagManager:
   - Enemy
   - Sword
   - Speed
+  - Jump
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
   - 

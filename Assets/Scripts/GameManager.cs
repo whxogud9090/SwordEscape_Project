@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour
 
     void UpdateUI()
     {
+        if (swordText == null) return;
         swordText.text = currentSword + " / " + requiredSword;
     }
 }

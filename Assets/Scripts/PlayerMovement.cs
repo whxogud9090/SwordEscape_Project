@@ -1,61 +1,125 @@
 using UnityEngine;
-using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
-    Rigidbody2D rigid;
-    Animator anim;
+    private Animator anim;
+    private Rigidbody2D rb;
+    private Collider2D bodyCollider;
+    private readonly RaycastHit2D[] groundHits = new RaycastHit2D[8];
 
-    public float jumpPower = 5f; // 점프력 조절
-    bool isGrounded = true;      // 바닥에 닿아있는지 확인
+    [Header("Movement")]
+    public float moveSpeed = 5f;
+    public float jumpForce = 7f;
 
-    private float originalJumpPower;
+    private float moveInput;
 
-    void Awake()
+    [Header("Ground Check")]
+    public Transform groundCheck;
+    public float checkRadius = 0.2f;
+    public LayerMask groundLayer;
+
+    private bool isGrounded;
+    private bool isJumping;
+    private bool canMove = true;
+
+    void Start()
     {
-        // 컴포넌트 불러오기
-        rigid = GetComponent<Rigidbody2D>();
+        rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+        bodyCollider = GetComponent<Collider2D>();
     }
 
     void Update()
     {
-        // 스페이스바를 누르고 & 바닥에 있을 때만 점프
-        if (Input.GetButtonDown("Jump") && isGrounded)
-        {
-            // 위쪽으로 힘을 가해 점프
-            rigid.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
+        if (!canMove) return;
 
-            // 애니메이터의 isJumping을 true로 바꿔서 점프 모션 실행
-            anim.SetBool("isJumping", true);
-            isGrounded = false;
+        moveInput = Input.GetAxis("Horizontal");
+
+        if (moveInput > 0)
+            transform.localScale = new Vector3(1, 1, 1);
+        else if (moveInput < 0)
+            transform.localScale = new Vector3(-1, 1, 1);
+
+        if (isGrounded && !isJumping && Input.GetKeyDown(KeyCode.Space))
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            isJumping = true;
+        }
+
+        if (isGrounded)
+        {
+            isJumping = false;
+        }
+
+        if (anim != null)
+        {
+            anim.SetFloat("Speed", Mathf.Abs(moveInput));
+            anim.SetBool("IsJumping", !isGrounded);
         }
     }
 
-    // 바닥에 다시 닿았을 때 점프 모션 해제
-    void OnCollisionEnter2D(Collision2D collision)
+    void FixedUpdate()
     {
-        // 닿은 물체의 태그가 "Ground"라면 (맵 타일/바닥)
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
+        if (!canMove) return;
 
-            // 애니메이터의 isJumping을 false로 바꿔서 기본 모션으로 복귀
-            anim.SetBool("isJumping", false);
+        rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+        isGrounded = CheckGrounded();
+    }
+
+    public void SetSpeed(float speed)
+    {
+        moveSpeed = speed;
+    }
+
+    public void SetJumpForce(float force)
+    {
+        jumpForce = force;
+    }
+
+    public void SetMove(bool value)
+    {
+        canMove = value;
+    }
+
+    public bool IsGrounded()
+    {
+        return isGrounded;
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+
+        if (groundCheck != null)
+        {
+            Gizmos.DrawWireSphere(groundCheck.position, checkRadius);
         }
     }
-    public void ActivateJumpBoost(float duration)
+
+    private bool CheckGrounded()
     {
-        StartCoroutine(JumpBoostCoroutine(duration));
-    }
+        bool groundedByCheck = false;
 
-    private IEnumerator JumpBoostCoroutine(float duration)
-    {
-        originalJumpPower = jumpPower;  // 원래 점프력 저장
-        jumpPower = jumpPower * 2f;     // 점프력 2배로 증가
+        if (groundCheck != null)
+        {
+            groundedByCheck = Physics2D.OverlapCircle(groundCheck.position, checkRadius, groundLayer);
+            if (groundedByCheck)
+            {
+                return true;
+            }
+        }
 
-        yield return new WaitForSeconds(duration);
+        if (bodyCollider == null)
+        {
+            return false;
+        }
 
-        jumpPower = originalJumpPower;  // 원래 점프력으로 복구
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.useLayerMask = true;
+        filter.layerMask = groundLayer;
+        filter.useTriggers = false;
+
+        int hitCount = bodyCollider.Cast(Vector2.down, filter, groundHits, checkRadius + 0.05f);
+        return hitCount > 0;
     }
 }

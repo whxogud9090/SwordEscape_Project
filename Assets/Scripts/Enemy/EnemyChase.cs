@@ -9,11 +9,18 @@ public class EnemyChase : MonoBehaviour
 
     void Start()
     {
-        player = GameObject.FindGameObjectWithTag("Player").transform;
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+
+        if (playerObject != null)
+        {
+            player = playerObject.transform;
+        }
     }
 
     void Update()
     {
+        if (player == null) return;
+
         float distance = Vector2.Distance(transform.position, player.position);
 
         if (distance < chaseRange)
@@ -22,11 +29,14 @@ public class EnemyChase : MonoBehaviour
             transform.Translate(direction * speed * Time.deltaTime);
         }
     }
+
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        PlayerHealth playerHealth = collision.gameObject.GetComponentInParent<PlayerHealth>();
+
+        if (playerHealth != null && collision.gameObject.CompareTag("Player"))
         {
-            collision.gameObject.SendMessage("Die");
+            playerHealth.Die();
         }
     }
 }

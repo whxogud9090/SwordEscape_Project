@@ -1,131 +1,109 @@
-using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
-    public float moveSpeed = 7f;
-    public float jumpForce = 15f;
+    private PlayerMovement movement;
+    private SpriteRenderer sr;
 
-    private Rigidbody2D rb;
-    private bool isGrounded;
+    [Header("PowerUps")]
+    public float speedMultiplier = 1.5f;
+    public float speedBoostDuration = 5f;
+    public float jumpMultiplier = 1.35f;
+    public float jumpBoostDuration = 5f;
+
+    private float originalSpeed;
+    private float originalJumpForce;
+    private bool isSpeedBoosted = false;
+    private bool isJumpBoosted = false;
     private bool isInvincible = false;
-
-    float originalSpeed;
-    bool isSpeedUp = false;
-    float moveX;
-
-    Vector3 startPosition;
+    private Coroutine speedBoostCoroutine;
+    private Coroutine jumpBoostCoroutine;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        originalSpeed = moveSpeed; // ⭐ 원래 속도 저장
-    }
+        movement = GetComponent<PlayerMovement>();
+        sr = GetComponent<SpriteRenderer>();
 
-    void Update()
-    {
-        moveX = Input.GetAxis("Horizontal");
-
-        GetComponent<SpriteRenderer>().flipX = moveX < 0;
-        if (moveX != 0)
+        if (movement != null)
         {
-            GetComponent<SpriteRenderer>().flipX = moveX < 0;
-        }
-        else if (moveX < 0)
-            transform.localScale = new Vector3(-1, 1, 1);
-
-        Jump();
-    }
-    void FixedUpdate()
-    {
-        rb.linearVelocity = new Vector2(moveX * moveSpeed, rb.linearVelocity.y);
-    }
-    void Move()
-    {
-        float moveX = Input.GetAxis("Horizontal");
-
-        Vector2 targetVelocity = new Vector2(moveX * moveSpeed, rb.linearVelocity.y);
-        rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, targetVelocity, 0.2f);
-
-        if (moveX > 0)
-            transform.localScale = new Vector3(1, 1, 1);
-        else if (moveX < 0)
-            transform.localScale = new Vector3(-1, 1, 1);
-    }
-
-    void Jump()
-    {
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            originalSpeed = movement.moveSpeed;
+            originalJumpForce = movement.jumpForce;
         }
     }
 
-    void OnCollisionStay2D(Collision2D collision)
+    public void ActivateSpeedBoost(float boostDuration = -1f)
     {
-        if (collision.gameObject.CompareTag("Ground"))
+        if (movement == null) return;
+
+        if (speedBoostCoroutine != null)
         {
-            isGrounded = true;
+            StopCoroutine(speedBoostCoroutine);
         }
+
+        float appliedDuration = boostDuration > 0f ? boostDuration : speedBoostDuration;
+        speedBoostCoroutine = StartCoroutine(SpeedBoost(appliedDuration));
     }
 
-    void OnCollisionExit2D(Collision2D collision)
+    IEnumerator SpeedBoost(float boostDuration)
     {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = false;
-        }
+        isSpeedBoosted = true;
+        movement.SetSpeed(originalSpeed * speedMultiplier);
+
+        yield return new WaitForSeconds(boostDuration);
+
+        movement.SetSpeed(originalSpeed);
+        isSpeedBoosted = false;
+        speedBoostCoroutine = null;
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    public void ActivateJumpBoost(float boostDuration = -1f)
     {
-        if (other.CompareTag("Sword"))
+        if (movement == null) return;
+
+        if (jumpBoostCoroutine != null)
         {
-            Debug.Log("Get Sword!");
-            Destroy(other.gameObject);
-            GameManager.instance.currentSword++;
+            StopCoroutine(jumpBoostCoroutine);
         }
 
-       
-        if (other.CompareTag("Spike") && !isInvincible)
-        {
-            Die();
-        }
-
-        
-        if (other.CompareTag("Invincible"))
-        {
-            Destroy(other.gameObject);
-            StartCoroutine(InvincibleTime());
-        }
-
-        if (other.CompareTag("Speed"))
-        {
-            Destroy(other.gameObject);
-            StartCoroutine(SpeedUp());
-        }
+        float appliedDuration = boostDuration > 0f ? boostDuration : jumpBoostDuration;
+        jumpBoostCoroutine = StartCoroutine(JumpBoost(appliedDuration));
     }
 
-    void Die()
+    IEnumerator JumpBoost(float boostDuration)
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        isJumpBoosted = true;
+        movement.SetJumpForce(originalJumpForce * jumpMultiplier);
+
+        yield return new WaitForSeconds(boostDuration);
+
+        movement.SetJumpForce(originalJumpForce);
+        isJumpBoosted = false;
+        jumpBoostCoroutine = null;
     }
 
-    IEnumerator InvincibleTime()
+    public void ActivateInvincible()
+    {
+        if (!isInvincible)
+            StartCoroutine(Invincible());
+    }
+
+    IEnumerator Invincible()
     {
         isInvincible = true;
-        yield return new WaitForSeconds(3f);
+
+        for (int i = 0; i < 10; i++)
+        {
+            sr.enabled = !sr.enabled;
+            yield return new WaitForSeconds(0.2f);
+        }
+
+        sr.enabled = true;
         isInvincible = false;
     }
-    IEnumerator SpeedUp()
+
+    public bool IsInvincible()
     {
-        isSpeedUp = true;
-        moveSpeed = originalSpeed * 2f; // 속도 2배
-
-        yield return new WaitForSeconds(5f); // 5초 유지
-
-        moveSpeed = originalSpeed;
-        isSpeedUp = false;
+        return isInvincible;
     }
 }

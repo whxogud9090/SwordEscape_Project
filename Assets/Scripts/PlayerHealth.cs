@@ -1,45 +1,101 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerHealth : MonoBehaviour
 {
     public bool isInvincible = false;
+
     private SpriteRenderer spriteRenderer;
+    private PlayerMovement playerMovement;
+    private Rigidbody2D rb;
+    private bool isDead = false;
 
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        playerMovement = GetComponent<PlayerMovement>();
+        rb = GetComponent<Rigidbody2D>();
     }
 
-    // 데미지 받을 때 호출
     public void TakeDamage(int damage)
     {
-        if (isInvincible) return; // 무적이면 무시
+        if (isInvincible || isDead) return;
 
-        // 데미지 처리 로직
-        Debug.Log("데미지 받음: " + damage);
+        Debug.Log("Player took damage: " + damage);
     }
 
-    // 무적 상태 시작
+    public void Die()
+    {
+        if (isInvincible || isDead) return;
+
+        StartCoroutine(DieCoroutine());
+    }
+
+    private IEnumerator DieCoroutine()
+    {
+        isDead = true;
+
+        if (playerMovement != null)
+        {
+            playerMovement.SetMove(false);
+        }
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.simulated = false;
+        }
+
+        yield return new WaitForSeconds(0.2f);
+
+        Scene activeScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(activeScene.name);
+    }
+
     public void ActivateInvincibility(float duration)
     {
+        if (isDead) return;
         StartCoroutine(InvincibilityCoroutine(duration));
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Spike"))
+        {
+            Die();
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Spike"))
+        {
+            Die();
+        }
     }
 
     private IEnumerator InvincibilityCoroutine(float duration)
     {
         isInvincible = true;
 
-        // 깜빡임 효과 (선택사항)
         float elapsed = 0f;
         while (elapsed < duration)
         {
-            spriteRenderer.enabled = !spriteRenderer.enabled;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.enabled = !spriteRenderer.enabled;
+            }
+
             yield return new WaitForSeconds(0.1f);
             elapsed += 0.1f;
         }
 
-        spriteRenderer.enabled = true;
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.enabled = true;
+        }
+
         isInvincible = false;
     }
 }

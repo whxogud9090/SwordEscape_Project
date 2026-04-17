@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class JumpItem : MonoBehaviour
+public class SpeedItem : MonoBehaviour
 {
-    public float jumpBoostDuration = 5f;
+    public float speedBoostDuration = 5f;
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -12,7 +12,7 @@ public class JumpItem : MonoBehaviour
 
         if (player != null)
         {
-            player.ActivateJumpBoost(jumpBoostDuration);
+            player.ActivateSpeedBoost(speedBoostDuration);
             Destroy(gameObject);
         }
     }
