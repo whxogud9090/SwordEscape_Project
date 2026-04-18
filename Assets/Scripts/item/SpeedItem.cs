@@ -6,9 +6,17 @@ public class SpeedItem : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag("Player")) return;
+        PlayerController player = other.GetComponent<PlayerController>();
 
-        PlayerController player = other.GetComponentInParent<PlayerController>();
+        if (player == null)
+        {
+            player = other.GetComponentInParent<PlayerController>();
+        }
+
+        if (player == null && other.attachedRigidbody != null)
+        {
+            player = other.attachedRigidbody.GetComponent<PlayerController>();
+        }
 
         if (player != null)
         {
