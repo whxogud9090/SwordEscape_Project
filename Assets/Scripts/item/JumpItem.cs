@@ -13,6 +13,10 @@ public class JumpItem : MonoBehaviour
         if (player != null)
         {
             player.ActivateJumpBoost(jumpBoostDuration);
+            if (AudioBootstrap.Instance != null)
+            {
+                AudioBootstrap.Instance.PlayItemPickup();
+            }
             Destroy(gameObject);
         }
     }

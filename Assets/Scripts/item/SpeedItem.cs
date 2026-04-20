@@ -21,6 +21,10 @@ public class SpeedItem : MonoBehaviour
         if (player != null)
         {
             player.ActivateSpeedBoost(speedBoostDuration);
+            if (AudioBootstrap.Instance != null)
+            {
+                AudioBootstrap.Instance.PlayItemPickup();
+            }
             Destroy(gameObject);
         }
     }

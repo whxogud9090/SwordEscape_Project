@@ -36,6 +36,11 @@ public class PlayerHealth : MonoBehaviour
     {
         isDead = true;
 
+        if (AudioBootstrap.Instance != null)
+        {
+            AudioBootstrap.Instance.PlayDeath();
+        }
+
         if (playerMovement != null)
         {
             playerMovement.SetMove(false);

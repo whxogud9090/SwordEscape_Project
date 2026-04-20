@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -5,19 +6,50 @@ public class Door : MonoBehaviour
 {
     public string nextSceneName;
 
+    [SerializeField] private float sceneLoadDelay = 0.22f;
+
+    private bool isTransitioning;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
+        if (isTransitioning || !collision.CompareTag("Player"))
         {
-            if (GameManager.instance.currentSword >= GameManager.instance.requiredSword)
-            {
-                Debug.Log("클리어!");
-                SceneManager.LoadScene(nextSceneName);
-            }
-            else
-            {
-                Debug.Log("검이 부족합니다!");
-            }
+            return;
         }
+
+        if (GameManager.instance != null && GameManager.instance.currentSword >= GameManager.instance.requiredSword)
+        {
+            Debug.Log("Stage clear!");
+            StartCoroutine(LoadNextSceneCoroutine(collision));
+        }
+        else
+        {
+            Debug.Log("Not enough swords!");
+        }
+    }
+
+    private IEnumerator LoadNextSceneCoroutine(Collider2D collision)
+    {
+        isTransitioning = true;
+
+        PlayerMovement playerMovement = collision.GetComponentInParent<PlayerMovement>();
+        if (playerMovement != null)
+        {
+            playerMovement.SetMove(false);
+        }
+
+        Rigidbody2D playerRb = collision.attachedRigidbody;
+        if (playerRb != null)
+        {
+            playerRb.linearVelocity = Vector2.zero;
+        }
+
+        if (AudioBootstrap.Instance != null)
+        {
+            AudioBootstrap.Instance.PlayDoorOpen();
+        }
+
+        yield return new WaitForSeconds(sceneLoadDelay);
+        SceneManager.LoadScene(nextSceneName);
     }
 }

@@ -318,7 +318,7 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
@@ -391,7 +391,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 20
   m_MaskInteraction: 0
   m_Sprite: {fileID: -3700974888070010645, guid: d3b3e129d449d4e498f8c08fb70cf472, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -580,7 +580,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.69, g: 0.7, b: 0.64, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -649,8 +649,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
   target: {fileID: 469069941}
-  smoothSpeed: 5
+  smoothTime: 0.12
   offset: {x: 0, y: 0, z: 0}
+  snapToPixelGrid: 0
+  pixelsPerUnit: 16
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -7027,6 +7029,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af89fef0b65a31a408ea9f355801003c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SwordItem
+  isFinalSword: 0
+  batSwarm: {fileID: 0}
+  batDespawnDelay: 0.8
 --- !u!212 &1376789090
 SpriteRenderer:
   serializedVersion: 2
@@ -7223,6 +7228,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af89fef0b65a31a408ea9f355801003c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SwordItem
+  isFinalSword: 0
+  batSwarm: {fileID: 0}
+  batDespawnDelay: 0.8
 --- !u!212 &1429091167
 SpriteRenderer:
   serializedVersion: 2
@@ -7329,6 +7337,9 @@ MonoBehaviour:
   currentSword: 0
   requiredSword: 3
   swordText: {fileID: 2109001009}
+  clearText: {fileID: 0}
+  clearMessage: CLEAR!
+  clearTextPosition: {x: 0, y: -80}
 --- !u!4 &1642237167
 Transform:
   m_ObjectHideFlags: 0
@@ -7664,6 +7675,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af89fef0b65a31a408ea9f355801003c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SwordItem
+  isFinalSword: 0
+  batSwarm: {fileID: 0}
+  batDespawnDelay: 0.8
 --- !u!212 &2000395247
 SpriteRenderer:
   serializedVersion: 2

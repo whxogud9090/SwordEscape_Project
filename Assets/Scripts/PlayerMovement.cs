@@ -44,9 +44,14 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             isJumping = true;
+            isGrounded = false;
+            if (AudioBootstrap.Instance != null)
+            {
+                AudioBootstrap.Instance.PlayJump();
+            }
         }
 
-        if (isGrounded)
+        if (isGrounded && rb.linearVelocity.y <= 0.05f)
         {
             isJumping = false;
         }
@@ -98,6 +103,12 @@ public class PlayerMovement : MonoBehaviour
 
     private bool CheckGrounded()
     {
+        // Ignore ground checks while the player is still rising from a jump.
+        if (rb != null && rb.linearVelocity.y > 0.05f)
+        {
+            return false;
+        }
+
         bool groundedByCheck = false;
 
         if (groundCheck != null)

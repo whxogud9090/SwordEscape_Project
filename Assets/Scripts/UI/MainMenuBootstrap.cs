@@ -18,6 +18,7 @@ public class MainMenuBootstrap : MonoBehaviour
     [SerializeField] private string gameTitle = "SWORD ESCAPE";
     [SerializeField] private string startLabel = "\uAC8C\uC784 \uC2DC\uC791";
     [SerializeField] private string helpLabel = "\uB3C4\uC6C0\uB9D0";
+    [SerializeField] private string quitLabel = "\uAC8C\uC784 \uB098\uAC00\uAE30";
     [SerializeField] private string helpTitle = "\uB3C4\uC6C0\uB9D0";
 
     private GameObject helpOverlay;
@@ -161,9 +162,10 @@ public class MainMenuBootstrap : MonoBehaviour
             new Vector2(0.5f, 0.5f),
             new Vector2(0.5f, 0.5f),
             new Vector2(0f, -20f),
-            new Vector2(440f, 250f));
+            new Vector2(440f, 340f));
         startButton = CreateMenuButton(menuRoot, startLabel, new Vector2(0f, 0f), StartGame, true);
         CreateMenuButton(menuRoot, helpLabel, new Vector2(0f, -82f), OpenHelp, false);
+        CreateMenuButton(menuRoot, quitLabel, new Vector2(0f, -154f), QuitGame, false);
 
         RectTransform footerRoot = CreatePanel(
             "FooterRoot",
@@ -497,5 +499,14 @@ public class MainMenuBootstrap : MonoBehaviour
                 EventSystem.current.SetSelectedGameObject(startButton.gameObject);
             }
         }
+    }
+
+    private void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 }

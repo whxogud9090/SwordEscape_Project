@@ -8,19 +8,28 @@ public class EnemyPatrol : MonoBehaviour
     private Vector3 startPos;
     private int direction = 1;
     private SpriteRenderer sr;
+    private Rigidbody2D rb;
 
-    void Start()
+    void Awake()
     {
         startPos = transform.position;
         sr = GetComponent<SpriteRenderer>();
+        rb = GetComponent<Rigidbody2D>();
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        // 이동
-        transform.Translate(Vector2.right * direction * moveSpeed * Time.deltaTime);
+        Vector2 moveStep = Vector2.right * direction * moveSpeed * Time.fixedDeltaTime;
 
-        // 방향 전환 위치 체크
+        if (rb != null && rb.bodyType != RigidbodyType2D.Static)
+        {
+            rb.MovePosition(rb.position + moveStep);
+        }
+        else
+        {
+            transform.Translate(moveStep, Space.World);
+        }
+
         if (transform.position.x >= startPos.x + moveDistance)
         {
             direction = -1;
@@ -30,8 +39,7 @@ public class EnemyPatrol : MonoBehaviour
             direction = 1;
         }
 
-        // ⭐ 방향에 따라 스프라이트 뒤집기
-        if (direction != 0)
+        if (sr != null && direction != 0)
         {
             sr.flipX = direction > 0;
         }

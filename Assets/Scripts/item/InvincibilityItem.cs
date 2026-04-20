@@ -1,12 +1,12 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class InvincibilityItem : MonoBehaviour
 {
-    public float invincibilityDuration = 5f; // ¹«Àû Áö¼Ó ½Ã°£ (ÃÊ)
+    public float invincibilityDuration = 5f; // ë¬´ì  ì§€ì† ì‹œê°„ (ì´ˆ)
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // ÇÃ·¹ÀÌ¾î°¡ ´ê¾ÒÀ» ¶§
+        // í”Œë ˆì´ì–´ê°€ ë‹¿ì•˜ì„ ë•Œ
         if (other.CompareTag("Player"))
         {
             PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
@@ -14,7 +14,11 @@ public class InvincibilityItem : MonoBehaviour
             if (playerHealth != null)
             {
                 playerHealth.ActivateInvincibility(invincibilityDuration);
-                Destroy(gameObject); // ¾ÆÀÌÅÛ Á¦°Å
+                if (AudioBootstrap.Instance != null)
+                {
+                    AudioBootstrap.Instance.PlayItemPickup();
+                }
+                Destroy(gameObject); // ì•„ì´í…œ ì œê±°
             }
         }
     }
