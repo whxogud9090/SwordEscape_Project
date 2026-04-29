@@ -16,6 +16,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string clearMessage = "CLEAR!";
     [SerializeField] private Vector2 clearTextPosition = new Vector2(0f, -80f);
 
+    private float stageStartTime;
+
     private void Awake()
     {
         instance = this;
@@ -23,6 +25,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        stageStartTime = Time.time;
         UpdateUI();
     }
 
@@ -54,6 +57,13 @@ public class GameManager : MonoBehaviour
         {
             AudioBootstrap.Instance.PlayClear();
         }
+    }
+
+    public int GetStageScore()
+    {
+        int timeBonus = Mathf.Max(0, 10000 - Mathf.RoundToInt((Time.time - stageStartTime) * 100f));
+        int swordBonus = currentSword * 1000;
+        return timeBonus + swordBonus;
     }
 
     private void EnsureClearText()

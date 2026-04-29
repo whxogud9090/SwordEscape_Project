@@ -20,6 +20,10 @@ public class Door : MonoBehaviour
         if (GameManager.instance != null && GameManager.instance.currentSword >= GameManager.instance.requiredSword)
         {
             Debug.Log("Stage clear!");
+            int stageIndex = Mathf.Max(1, SceneManager.GetActiveScene().buildIndex);
+            int score = GameManager.instance.GetStageScore();
+            LeaderboardStorage.SaveBestScore(stageIndex, score);
+            GameManager.instance.ShowClearMessage();
             StartCoroutine(LoadNextSceneCoroutine(collision));
         }
         else

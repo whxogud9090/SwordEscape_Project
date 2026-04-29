@@ -18,10 +18,14 @@ public class MainMenuBootstrap : MonoBehaviour
     [SerializeField] private string gameTitle = "SWORD ESCAPE";
     [SerializeField] private string startLabel = "\uAC8C\uC784 \uC2DC\uC791";
     [SerializeField] private string helpLabel = "\uB3C4\uC6C0\uB9D0";
+    [SerializeField] private string leaderboardLabel = "\uB9AC\uB354\uBCF4\uB4DC";
     [SerializeField] private string quitLabel = "\uAC8C\uC784 \uB098\uAC00\uAE30";
     [SerializeField] private string helpTitle = "\uB3C4\uC6C0\uB9D0";
+    [SerializeField] private string leaderboardTitle = "\uB9AC\uB354\uBCF4\uB4DC";
 
     private GameObject helpOverlay;
+    private GameObject leaderboardOverlay;
+    private TextMeshProUGUI[] leaderboardScoreTexts;
     private Button startButton;
     private TMP_FontAsset latinFontAsset;
     private TMP_FontAsset koreanFontAsset;
@@ -162,10 +166,11 @@ public class MainMenuBootstrap : MonoBehaviour
             new Vector2(0.5f, 0.5f),
             new Vector2(0.5f, 0.5f),
             new Vector2(0f, -20f),
-            new Vector2(440f, 340f));
-        startButton = CreateMenuButton(menuRoot, startLabel, new Vector2(0f, 0f), StartGame, true);
-        CreateMenuButton(menuRoot, helpLabel, new Vector2(0f, -82f), OpenHelp, false);
-        CreateMenuButton(menuRoot, quitLabel, new Vector2(0f, -154f), QuitGame, false);
+            new Vector2(440f, 420f));
+        startButton = CreateMenuButton(menuRoot, startLabel, new Vector2(0f, 40f), StartGame, true);
+        CreateMenuButton(menuRoot, helpLabel, new Vector2(0f, -42f), OpenHelp, false);
+        CreateMenuButton(menuRoot, leaderboardLabel, new Vector2(0f, -114f), OpenLeaderboard, false);
+        CreateMenuButton(menuRoot, quitLabel, new Vector2(0f, -186f), QuitGame, false);
 
         RectTransform footerRoot = CreatePanel(
             "FooterRoot",
@@ -189,6 +194,8 @@ public class MainMenuBootstrap : MonoBehaviour
 
         helpOverlay = CreateHelpOverlay(canvasRect);
         helpOverlay.SetActive(false);
+        leaderboardOverlay = CreateLeaderboardOverlay(canvasRect);
+        leaderboardOverlay.SetActive(false);
 
         if (EventSystem.current != null)
         {
@@ -382,6 +389,97 @@ public class MainMenuBootstrap : MonoBehaviour
         return overlay.gameObject;
     }
 
+    private GameObject CreateLeaderboardOverlay(RectTransform parent)
+    {
+        RectTransform overlay = CreateTransparentRect("LeaderboardOverlay", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        overlay.offsetMin = Vector2.zero;
+        overlay.offsetMax = Vector2.zero;
+
+        Image overlayImage = overlay.gameObject.AddComponent<Image>();
+        overlayImage.color = new Color32(4, 8, 18, 196);
+
+        RectTransform popup = CreatePanel(
+            "LeaderboardPanel",
+            overlay,
+            new Vector2(0.5f, 0.5f),
+            new Vector2(0.5f, 0.5f),
+            Vector2.zero,
+            new Vector2(860f, 620f),
+            new Color32(11, 21, 37, 238));
+        Outline outline = popup.gameObject.AddComponent<Outline>();
+        outline.effectColor = new Color32(230, 202, 134, 85);
+        outline.effectDistance = new Vector2(3f, -3f);
+
+        CreateText(
+            "LeaderboardTitle",
+            popup,
+            leaderboardTitle,
+            GetFontForText(leaderboardTitle),
+            44,
+            FontStyles.Bold,
+            new Color32(248, 251, 255, 255),
+            new Vector2(0f, -34f),
+            new Vector2(620f, 52f),
+            TextAlignmentOptions.Center);
+
+        RectTransform listRoot = CreateTransparentRect(
+            "StageScoreLayoutGroup",
+            popup,
+            new Vector2(0.5f, 1f),
+            new Vector2(0.5f, 1f),
+            new Vector2(0f, -112f),
+            new Vector2(660f, 350f));
+        VerticalLayoutGroup layoutGroup = listRoot.gameObject.AddComponent<VerticalLayoutGroup>();
+        layoutGroup.padding = new RectOffset(18, 18, 14, 14);
+        layoutGroup.spacing = 12f;
+        layoutGroup.childAlignment = TextAnchor.MiddleCenter;
+        layoutGroup.childControlWidth = true;
+        layoutGroup.childControlHeight = true;
+        layoutGroup.childForceExpandWidth = true;
+        layoutGroup.childForceExpandHeight = false;
+
+        leaderboardScoreTexts = new TextMeshProUGUI[5];
+        for (int i = 0; i < leaderboardScoreTexts.Length; i++)
+        {
+            leaderboardScoreTexts[i] = CreateLeaderboardRow(listRoot, i + 1);
+        }
+
+        Button resetButton = CreateMenuButton(popup, "\uAE30\uB85D \uC0AD\uC81C", new Vector2(-150f, -244f), ClearLeaderboard, false);
+        resetButton.GetComponent<RectTransform>().sizeDelta = new Vector2(240f, 52f);
+
+        Button closeButton = CreateMenuButton(popup, "\uB2EB\uAE30", new Vector2(150f, -244f), CloseLeaderboard, false);
+        closeButton.GetComponent<RectTransform>().sizeDelta = new Vector2(220f, 52f);
+
+        return overlay.gameObject;
+    }
+
+    private TextMeshProUGUI CreateLeaderboardRow(RectTransform parent, int stageIndex)
+    {
+        RectTransform row = CreatePanel(
+            "Stage" + stageIndex + "ScoreRow",
+            parent,
+            new Vector2(0.5f, 0.5f),
+            new Vector2(0.5f, 0.5f),
+            Vector2.zero,
+            new Vector2(620f, 54f),
+            new Color32(255, 255, 255, 18));
+        LayoutElement layoutElement = row.gameObject.AddComponent<LayoutElement>();
+        layoutElement.preferredHeight = 54f;
+        layoutElement.minHeight = 54f;
+
+        return CreateText(
+            "ScoreText",
+            row,
+            "\uC2A4\uD14C\uC774\uC9C0 " + stageIndex + " : 0",
+            GetFontForText("\uC2A4\uD14C\uC774\uC9C0"),
+            27,
+            FontStyles.Bold,
+            new Color32(246, 250, 255, 255),
+            new Vector2(0f, -10f),
+            new Vector2(560f, 34f),
+            TextAlignmentOptions.Center);
+    }
+
     private void CreateFullScreenImage(string objectName, RectTransform parent, Color color)
     {
         RectTransform rect = CreateTransparentRect(objectName, parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -400,7 +498,7 @@ public class MainMenuBootstrap : MonoBehaviour
             new Vector2(0.5f, 0f),
             new Vector2(0.5f, 0f),
             new Vector2(0f, 0f),
-            new Vector2(1920f, 280f));
+            new Vector2(1920f, 120f));
         Image image = bottomShade.gameObject.AddComponent<Image>();
         image.color = new Color32(8, 12, 22, 135);
     }
@@ -498,6 +596,49 @@ public class MainMenuBootstrap : MonoBehaviour
             {
                 EventSystem.current.SetSelectedGameObject(startButton.gameObject);
             }
+        }
+    }
+
+    private void OpenLeaderboard()
+    {
+        RefreshLeaderboard();
+
+        if (leaderboardOverlay != null)
+        {
+            leaderboardOverlay.SetActive(true);
+        }
+    }
+
+    private void CloseLeaderboard()
+    {
+        if (leaderboardOverlay != null)
+        {
+            leaderboardOverlay.SetActive(false);
+            if (EventSystem.current != null && startButton != null)
+            {
+                EventSystem.current.SetSelectedGameObject(startButton.gameObject);
+            }
+        }
+    }
+
+    private void ClearLeaderboard()
+    {
+        LeaderboardStorage.DeleteAllScores(5);
+        RefreshLeaderboard();
+    }
+
+    private void RefreshLeaderboard()
+    {
+        if (leaderboardScoreTexts == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < leaderboardScoreTexts.Length; i++)
+        {
+            int stageIndex = i + 1;
+            int bestScore = LeaderboardStorage.GetBestScore(stageIndex);
+            leaderboardScoreTexts[i].text = "\uC2A4\uD14C\uC774\uC9C0 " + stageIndex + " : " + bestScore;
         }
     }
 
