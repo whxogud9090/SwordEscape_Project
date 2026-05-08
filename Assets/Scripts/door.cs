@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -20,6 +20,7 @@ public class Door : MonoBehaviour
         if (GameManager.instance != null && GameManager.instance.currentSword >= GameManager.instance.requiredSword)
         {
             Debug.Log("Stage clear!");
+            GameManager.instance.SaveCurrentStageResult();
             StartCoroutine(LoadNextSceneCoroutine(collision));
         }
         else
@@ -53,3 +54,5 @@ public class Door : MonoBehaviour
         SceneManager.LoadScene(nextSceneName);
     }
 }
+
+

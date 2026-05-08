@@ -1,7 +1,11 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SwordItem : MonoBehaviour
 {
+    [Header("Item Data")]
+    [SerializeField] private ItemSO itemData;
+    [SerializeField] private int fallbackScore = 10;
+
     [Header("Final Sword")]
     [SerializeField] private bool isFinalSword;
     [SerializeField] private BatSwarmController batSwarm;
@@ -19,9 +23,11 @@ public class SwordItem : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
+            int itemScore = itemData != null ? itemData.score : fallbackScore;
+
             if (GameManager.instance != null)
             {
-                GameManager.instance.AddSword();
+                GameManager.instance.AddSword(itemScore);
             }
 
             if (AudioBootstrap.Instance != null && !isFinalSword)

@@ -1,3 +1,4 @@
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -18,10 +19,13 @@ public class MainMenuBootstrap : MonoBehaviour
     [SerializeField] private string gameTitle = "SWORD ESCAPE";
     [SerializeField] private string startLabel = "\uAC8C\uC784 \uC2DC\uC791";
     [SerializeField] private string helpLabel = "\uB3C4\uC6C0\uB9D0";
+    [SerializeField] private string rankLabel = "\uB7AD\uD0B9";
     [SerializeField] private string quitLabel = "\uAC8C\uC784 \uB098\uAC00\uAE30";
     [SerializeField] private string helpTitle = "\uB3C4\uC6C0\uB9D0";
+    [SerializeField] private string rankTitle = "Stage Ranking";
 
     private GameObject helpOverlay;
+    private GameObject rankOverlay;
     private Button startButton;
     private TMP_FontAsset latinFontAsset;
     private TMP_FontAsset koreanFontAsset;
@@ -162,10 +166,11 @@ public class MainMenuBootstrap : MonoBehaviour
             new Vector2(0.5f, 0.5f),
             new Vector2(0.5f, 0.5f),
             new Vector2(0f, -20f),
-            new Vector2(440f, 340f));
+            new Vector2(440f, 410f));
         startButton = CreateMenuButton(menuRoot, startLabel, new Vector2(0f, 0f), StartGame, true);
         CreateMenuButton(menuRoot, helpLabel, new Vector2(0f, -82f), OpenHelp, false);
-        CreateMenuButton(menuRoot, quitLabel, new Vector2(0f, -154f), QuitGame, false);
+        CreateMenuButton(menuRoot, rankLabel, new Vector2(0f, -154f), OpenRank, false);
+        CreateMenuButton(menuRoot, quitLabel, new Vector2(0f, -226f), QuitGame, false);
 
         RectTransform footerRoot = CreatePanel(
             "FooterRoot",
@@ -189,6 +194,9 @@ public class MainMenuBootstrap : MonoBehaviour
 
         helpOverlay = CreateHelpOverlay(canvasRect);
         helpOverlay.SetActive(false);
+
+        rankOverlay = CreateRankOverlay(canvasRect);
+        rankOverlay.SetActive(false);
 
         if (EventSystem.current != null)
         {
@@ -381,7 +389,143 @@ public class MainMenuBootstrap : MonoBehaviour
 
         return overlay.gameObject;
     }
+    private GameObject CreateRankOverlay(RectTransform parent)
+    {
+        RectTransform overlay = CreateTransparentRect("RankOverlay", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        overlay.offsetMin = Vector2.zero;
+        overlay.offsetMax = Vector2.zero;
 
+        Image overlayImage = overlay.gameObject.AddComponent<Image>();
+        overlayImage.color = new Color32(4, 8, 18, 202);
+
+        RectTransform popup = CreatePanel(
+            "RankPanel",
+            overlay,
+            new Vector2(0.5f, 0.5f),
+            new Vector2(0.5f, 0.5f),
+            Vector2.zero,
+            new Vector2(900f, 650f),
+            new Color32(11, 21, 37, 242));
+
+        Outline outline = popup.gameObject.AddComponent<Outline>();
+        outline.effectColor = new Color32(230, 202, 134, 85);
+        outline.effectDistance = new Vector2(3f, -3f);
+
+        CreateText(
+            "RankTitle",
+            popup,
+            rankTitle,
+            GetFontForText(rankTitle),
+            44,
+            FontStyles.Bold,
+            new Color32(248, 251, 255, 255),
+            new Vector2(0f, -28f),
+            new Vector2(720f, 56f),
+            TextAlignmentOptions.Center);
+
+        RectTransform stageButtonRoot = CreateTransparentRect(
+            "StageButtonRoot",
+            popup,
+            new Vector2(0f, 1f),
+            new Vector2(0f, 1f),
+            new Vector2(118f, -128f),
+            new Vector2(170f, 310f));
+
+        RectTransform listRoot = CreatePanel(
+            "RankList",
+            popup,
+            new Vector2(0.5f, 1f),
+            new Vector2(0.5f, 1f),
+            new Vector2(92f, -128f),
+            new Vector2(560f, 360f),
+            new Color32(255, 255, 255, 22));
+
+        List<string> stageNames = GetRankStageNames();
+        for (int i = 0; i < stageNames.Count; i++)
+        {
+            string stageName = stageNames[i];
+            Button stageButton = CreateMenuButton(
+                stageButtonRoot,
+                stageName.ToUpper().Replace("STAGE", "STAGE "),
+                new Vector2(0f, -i * 78f),
+                () => ShowStageRank(listRoot, stageName),
+                false);
+            stageButton.GetComponent<RectTransform>().sizeDelta = new Vector2(130f, 54f);
+        }
+
+        string firstStage = stageNames.Count > 0 ? stageNames[0] : "Stage1";
+        ShowStageRank(listRoot, firstStage);
+
+        Button closeButton = CreateMenuButton(popup, "\uB2EB\uAE30", new Vector2(0f, -278f), CloseRank, false);
+        closeButton.GetComponent<RectTransform>().sizeDelta = new Vector2(220f, 52f);
+
+        return overlay.gameObject;
+    }
+
+    private List<string> GetRankStageNames()
+    {
+        List<string> stageNames = new List<string> { "Stage1", "Stage2", "Stage3" };
+        List<string> savedStageNames = StageDataManager.LoadStageNames();
+
+        for (int i = 0; i < savedStageNames.Count; i++)
+        {
+            if (!stageNames.Contains(savedStageNames[i]))
+            {
+                stageNames.Add(savedStageNames[i]);
+            }
+        }
+
+        return stageNames;
+    }
+
+    private void ShowStageRank(RectTransform listRoot, string stageName)
+    {
+        for (int i = listRoot.childCount - 1; i >= 0; i--)
+        {
+            Destroy(listRoot.GetChild(i).gameObject);
+        }
+
+        CreateText(
+            "SelectedStageTitle",
+            listRoot,
+            stageName,
+            GetFontForText(stageName),
+            28,
+            FontStyles.Bold,
+            new Color32(255, 214, 138, 255),
+            new Vector2(0f, -28f),
+            new Vector2(500f, 36f),
+            TextAlignmentOptions.Center);
+
+        List<StageResult> results = StageDataManager.LoadStageResults(stageName, 5);
+        if (results.Count == 0)
+        {
+            CreateRankRow(listRoot, "No ranking data", -90f, true);
+            return;
+        }
+
+        for (int i = 0; i < results.Count; i++)
+        {
+            StageResult result = results[i];
+            string row = string.Format("{0}. {1} - {2}", i + 1, result.playerName, result.score);
+            CreateRankRow(listRoot, row, -82f - i * 48f, false);
+        }
+    }
+
+    private void CreateRankRow(RectTransform parent, string content, float y, bool muted)
+    {
+        CreateText(
+            "RankRow",
+            parent,
+            content,
+            GetFontForText(content),
+            24,
+            FontStyles.Bold,
+            muted ? new Color32(170, 181, 202, 255) : new Color32(235, 241, 255, 255),
+            new Vector2(0f, y),
+            new Vector2(500f, 34f),
+            TextAlignmentOptions.Center);
+    }
     private void CreateFullScreenImage(string objectName, RectTransform parent, Color color)
     {
         RectTransform rect = CreateTransparentRect(objectName, parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -500,7 +644,35 @@ public class MainMenuBootstrap : MonoBehaviour
             }
         }
     }
+    private void OpenRank()
+    {
+        if (rankOverlay != null)
+        {
+            Destroy(rankOverlay);
+            Canvas canvas = FindObjectOfType<Canvas>();
+            if (canvas != null)
+            {
+                rankOverlay = CreateRankOverlay(canvas.GetComponent<RectTransform>());
+            }
+        }
 
+        if (rankOverlay != null)
+        {
+            rankOverlay.SetActive(true);
+        }
+    }
+
+    private void CloseRank()
+    {
+        if (rankOverlay != null)
+        {
+            rankOverlay.SetActive(false);
+            if (EventSystem.current != null && startButton != null)
+            {
+                EventSystem.current.SetSelectedGameObject(startButton.gameObject);
+            }
+        }
+    }
     private void QuitGame()
     {
 #if UNITY_EDITOR
@@ -510,3 +682,7 @@ public class MainMenuBootstrap : MonoBehaviour
 #endif
     }
 }
+
+
+
+

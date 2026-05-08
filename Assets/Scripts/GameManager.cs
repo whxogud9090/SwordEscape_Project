@@ -1,6 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,12 +10,19 @@ public class GameManager : MonoBehaviour
     public int currentSword = 0;
     public int requiredSword = 3;
 
+    [Header("Score")]
+    public int currentScore = 0;
+    [SerializeField] private string defaultPlayerName = "Player";
+
     public TextMeshProUGUI swordText;
+    public TextMeshProUGUI scoreText;
     public TextMeshProUGUI clearText;
 
     [Header("Clear UI")]
     [SerializeField] private string clearMessage = "CLEAR!";
     [SerializeField] private Vector2 clearTextPosition = new Vector2(0f, -80f);
+
+    private bool resultSaved;
 
     private void Awake()
     {
@@ -28,32 +36,64 @@ public class GameManager : MonoBehaviour
 
     public void AddSword()
     {
+        AddSword(0);
+    }
+
+    public void AddSword(int score)
+    {
         currentSword++;
+        AddScore(score);
+    }
+
+    public void AddScore(int score)
+    {
+        currentScore += score;
         UpdateUI();
     }
 
     void UpdateUI()
     {
-        if (swordText == null) return;
-        swordText.text = currentSword + " / " + requiredSword;
+        if (swordText != null)
+        {
+            swordText.text = currentSword + " / " + requiredSword;
+        }
+
+        if (scoreText != null)
+        {
+            scoreText.text = "Score : " + currentScore;
+        }
     }
 
     public void ShowClearMessage()
     {
         EnsureClearText();
+        SaveCurrentStageResult();
 
         if (clearText == null)
         {
             return;
         }
 
-        clearText.text = clearMessage;
+        clearText.text = clearMessage + "\nScore : " + currentScore;
         clearText.gameObject.SetActive(true);
 
         if (AudioBootstrap.Instance != null)
         {
             AudioBootstrap.Instance.PlayClear();
         }
+    }
+
+    public void SaveCurrentStageResult()
+    {
+        if (resultSaved)
+        {
+            return;
+        }
+
+        resultSaved = true;
+        string playerName = PlayerPrefs.GetString("PlayerName", defaultPlayerName);
+        string stageName = SceneManager.GetActiveScene().name;
+        StageDataManager.SaveStageResult(playerName, stageName, currentScore);
     }
 
     private void EnsureClearText()
@@ -91,6 +131,8 @@ public class GameManager : MonoBehaviour
         rectTransform.anchorMax = new Vector2(0.5f, 1f);
         rectTransform.pivot = new Vector2(0.5f, 1f);
         rectTransform.anchoredPosition = clearTextPosition;
-        rectTransform.sizeDelta = new Vector2(500f, 100f);
+        rectTransform.sizeDelta = new Vector2(500f, 140f);
     }
 }
+
+
