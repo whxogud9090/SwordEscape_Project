@@ -21,6 +21,12 @@ public class Door : MonoBehaviour
         {
             Debug.Log("Stage clear!");
             GameManager.instance.SaveCurrentStageResult();
+
+            int stageIndex = Mathf.Max(1, SceneManager.GetActiveScene().buildIndex);
+            int score = GameManager.instance.GetStageScore();
+            LeaderboardStorage.SaveBestScore(stageIndex, score);
+
+            GameManager.instance.ShowClearMessage();
             StartCoroutine(LoadNextSceneCoroutine(collision));
         }
         else
@@ -54,5 +60,3 @@ public class Door : MonoBehaviour
         SceneManager.LoadScene(nextSceneName);
     }
 }
-
-

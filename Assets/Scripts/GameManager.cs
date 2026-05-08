@@ -23,10 +23,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Vector2 clearTextPosition = new Vector2(0f, -80f);
 
     private bool resultSaved;
+    private float stageStartTime;
 
     private void Awake()
     {
         instance = this;
+        stageStartTime = Time.time;
     }
 
     private void Start()
@@ -49,6 +51,13 @@ public class GameManager : MonoBehaviour
     {
         currentScore += score;
         UpdateUI();
+    }
+
+    public int GetStageScore()
+    {
+        int timeBonus = Mathf.Max(0, 10000 - Mathf.RoundToInt((Time.time - stageStartTime) * 100f));
+        int swordBonus = currentSword * 1000;
+        return currentScore + timeBonus + swordBonus;
     }
 
     void UpdateUI()
@@ -134,5 +143,3 @@ public class GameManager : MonoBehaviour
         rectTransform.sizeDelta = new Vector2(500f, 140f);
     }
 }
-
-
